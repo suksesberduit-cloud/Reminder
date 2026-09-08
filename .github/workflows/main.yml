@@ -17,8 +17,16 @@ jobs:
         uses: actions/setup-java@v4
         with: { distribution: 'temurin', java-version: '17' }
 
-      - name: Install deps
-        run: npm install
+      - name: Extract project zip
+        run: |
+          unzip -o reminder-app.zip
+          cp -r reminder-app/www .
+          cp -r reminder-app/android-native .
 
-      - name: Sync Capacitor
-        run: np
+      - name: Init npm project + install Capacitor
+        run: |
+          npm init -y
+          npm install @capacitor/core@6 @capacitor/android@6 @capacitor/cli@6
+
+      - name: Init Capacitor project
+        run: npx cap init "Reminder" "i
