@@ -29,4 +29,15 @@ jobs:
           npm install @capacitor/core@6 @capacitor/android@6 @capacitor/cli@6
 
       - name: Init Capacitor project
-        run: npx cap init "Reminder" "i
+        run: npx cap init Reminder id.reminder.app --web-dir=www
+
+      - name: Add Android platform
+        run: npx cap add android
+
+      - name: Sync web assets
+        run: npx cap sync android
+
+      - name: Copy native Kotlin plugin files
+        run: |
+          mkdir -p android/app/src/main/java/id/reminder/app
+          cp android-native/java/id/reminder/app/*.kt android/app/src/
