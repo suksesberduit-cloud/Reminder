@@ -1,0 +1,116 @@
+name: Build Reminder APK
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with: { node-version: '20' }
+
+      - name: Setup JDK
+        uses: actions/setup-java@v4
+        with: { distribution: 'temurin', java-version: '17' }
+
+      - name: Extract project zip
+        run: |
+          unzip -o reminder-app.zip
+          cp -r reminder-app/www .
+          cp -r reminder-app/android-native .
+
+      - name: Init npm project + install Capacitor
+        run: |
+          npm init -y
+          npm install @capacitor/core@6 @capacitor/android@6 @capacitor/cli@6
+
+      - name: Init Capacitor project
+        run: npx cap init Reminder id.reminder.app --web-dir=www
+
+      - name: Add Android platform
+        run: npx cap add android
+
+      - name: Sync web assets
+        run: npx cap sync android
+
+      - name: Copy native Java plugin files
+        run: |
+          mkdir -p android/app/src/main/java/id/reminder/app
+          cp android-native/java/id/reminder/app/*.java android/app/src/main/java/id/reminder/app/
+
+      - name: Register plugin in MainActivity
+        run: |
+          printf '%s\n' \
+            'package id.reminder.app;' \
+            '' \
+            'import android.os.Bundle;' \
+            'import com.getcapacitor.BridgeActivity;' \
+            '' \
+            'public class MainActivity extends BridgeActivity {' \
+            '    @Override' \
+            '    public void onCreate(Bundle savedInstanceState) {' \
+            '        registerPlugin(ReminderPlugin.class);' \
+            '        super.onCreate(savedInstanceState);' \
+            '    }' \
+            '}' \
+            > android/app/src/main/java/id/reminder/app/MainActivity.java
+
+      - name: Patch AndroidManifest.xml
+        run: |
+          python3 -c '
+          path = "android/app/src/main/AndroidManifest.xml"
+          f = open(path, "r")
+          content = f.read()
+          f.close()
+
+          queries = "    <queries>\n"
+          queries += "        <intent>\n"
+          queries += "            <action android:name=\"android.intent.action.MAIN\" />\n"
+          queries += "            <category android:name=\"android.intent.category.LAUNCHER\" />\n"
+          queries += "        </intent>\n"
+          queries += "    </queries>\n"
+
+          perms = "    <uses-permission android:name=\"android.permission.RECEIVE_BOOT_COMPLETED\" />\n"
+          perms += "    <uses-permission android:name=\"android.permission.POST_NOTIFICATIONS\" />\n"
+          perms += "    <uses-permission android:name=\"android.permission.FOREGROUND_SERVICE\" />\n"
+          perms += "    <uses-permission android:name=\"android.permission.FOREGROUND_SERVICE_SPECIAL_USE\" />\n"
+          perms += "    <uses-permission android:name=\"android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS\" />\n"
+
+          content = content.replace("<application", queries + perms + "\n    <application", 1)
+
+          comp = "\n"
+          comp += "    <service android:name=\"id.reminder.app.ScreenUnlockService\" android:enabled=\"true\" android:exported=\"false\" android:foregroundServiceType=\"specialUse\">\n"
+          comp += "        <property android:name=\"android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE\" android:value=\"Personal reminder on screen unlock\" />\n"
+          comp += "    </service>\n"
+          comp += "    <receiver android:name=\"id.reminder.app.BootReceiver\" android:enabled=\"true\" android:exported=\"false\">\n"
+          comp += "        <intent-filter>\n"
+          comp += "            <action android:name=\"android.intent.action.BOOT_COMPLETED\" />\n"
+          comp += "        </intent-filter>\n"
+          comp += "    </receiver>\n"
+          comp += "</application>"
+          content = content.replace("</application>", comp, 1)
+
+          f = open(path, "w")
+          f.write(content)
+          f.close()
+          print("AndroidManifest.xml patched successfully")
+          '
+
+      - name: Show final manifest (debug)
+        run: cat android/app/src/main/AndroidManifest.xml
+
+      - name: Build APK
+        run: |
+          cd android
+          chmod +x gradlew
+          ./gradlew assembleDebug
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: reminder-apk
+          path: android/app/build/outputs/apk/debug/app-debug.apk
