@@ -40,8 +40,9 @@ jobs:
       - name: Copy native Kotlin plugin files
         run: |
           mkdir -p android/app/src/main/java/id/reminder/app
-          cp android-native/java/id/reminder/app/*.kt android/app/src/
-          - name: Register plugin in MainActivity
+          cp android-native/java/id/reminder/app/*.kt android/app/src/main/java/id/reminder/app/
+
+      - name: Register plugin in MainActivity
         run: |
           printf '%s\n' \
             'package id.reminder.app;' \
