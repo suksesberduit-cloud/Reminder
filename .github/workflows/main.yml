@@ -37,10 +37,10 @@ jobs:
       - name: Sync web assets
         run: npx cap sync android
 
-      - name: Copy native Kotlin plugin files
+      - name: Copy native Java plugin files
         run: |
           mkdir -p android/app/src/main/java/id/reminder/app
-          cp android-native/java/id/reminder/app/*.kt android/app/src/main/java/id/reminder/app/
+          cp android-native/java/id/reminder/app/*.java android/app/src/main/java/id/reminder/app/
 
       - name: Register plugin in MainActivity
         run: |
