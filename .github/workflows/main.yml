@@ -67,12 +67,20 @@ jobs:
           content = f.read()
           f.close()
 
+          queries = "    <queries>\n"
+          queries += "        <intent>\n"
+          queries += "            <action android:name=\"android.intent.action.MAIN\" />\n"
+          queries += "            <category android:name=\"android.intent.category.LAUNCHER\" />\n"
+          queries += "        </intent>\n"
+          queries += "    </queries>\n"
+
           perms = "    <uses-permission android:name=\"android.permission.RECEIVE_BOOT_COMPLETED\" />\n"
           perms += "    <uses-permission android:name=\"android.permission.POST_NOTIFICATIONS\" />\n"
           perms += "    <uses-permission android:name=\"android.permission.FOREGROUND_SERVICE\" />\n"
           perms += "    <uses-permission android:name=\"android.permission.FOREGROUND_SERVICE_SPECIAL_USE\" />\n"
           perms += "    <uses-permission android:name=\"android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS\" />\n"
-          content = content.replace("<application", perms + "\n    <application", 1)
+
+          content = content.replace("<application", queries + perms + "\n    <application", 1)
 
           comp = "\n"
           comp += "    <service android:name=\"id.reminder.app.ScreenUnlockService\" android:enabled=\"true\" android:exported=\"false\" android:foregroundServiceType=\"specialUse\">\n"
