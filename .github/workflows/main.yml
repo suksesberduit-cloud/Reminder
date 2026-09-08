@@ -79,6 +79,7 @@ jobs:
           perms += "    <uses-permission android:name=\"android.permission.FOREGROUND_SERVICE\" />\n"
           perms += "    <uses-permission android:name=\"android.permission.FOREGROUND_SERVICE_SPECIAL_USE\" />\n"
           perms += "    <uses-permission android:name=\"android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS\" />\n"
+          perms += "    <uses-permission android:name=\"android.permission.USE_FULL_SCREEN_INTENT\" />\n"
 
           content = content.replace("<application", queries + perms + "\n    <application", 1)
 
