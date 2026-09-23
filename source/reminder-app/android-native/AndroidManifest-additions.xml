@@ -1,0 +1,34 @@
+<!--
+  Tempel bagian-bagian ini ke android/app/src/main/AndroidManifest.xml
+  hasil generate `npx cap add android`.
+-->
+
+<!-- ============ PERMISSIONS (taruh sebelum tag <application>) ============ -->
+<uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+<uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+<uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+<!-- Android 14+ mewajibkan deklarasi tipe foreground service -->
+<uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
+<!-- Opsional: agar user bisa diarahkan whitelist battery optimization secara sadar -->
+<uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
+
+<!-- ============ DI DALAM TAG <application> ============ -->
+
+<service
+    android:name="id.reminder.app.ScreenUnlockService"
+    android:enabled="true"
+    android:exported="false"
+    android:foregroundServiceType="specialUse">
+    <property
+        android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+        android:value="Personal reminder: notifies user on screen unlock to open reading app" />
+</service>
+
+<receiver
+    android:name="id.reminder.app.BootReceiver"
+    android:enabled="true"
+    android:exported="false">
+    <intent-filter>
+        <action android:name="android.intent.action.BOOT_COMPLETED" />
+    </intent-filter>
+</receiver>
